@@ -1,0 +1,28 @@
+最初的设计：
+这里我们从客户角度看：DBConnectionPool设计需要考虑的问题。
+
+1、首先我们建立一个DBConnectionPool。
+通过getDBConnection获得连接。
+   使用连接进行数据操作行为。
+   结束Statement.close()、ResutlSet.close()
+   特别注意的是：千万不能Connection.close()
+   不然的话，将导致DBConnectionPool中的DBConnection持有的Connection被关闭，那么就会导致系统失常。
+
+   从设计者的角度来说：
+   最好封装Connection，然后屏拦截譬如close等方法的调用。
+   这个封装一般需要用内部类来实现，这样DBConnectionPool可以操作，但是外部不可操作之。
+
+2、从用户角度来说，释放Connection不是真的Connection close而是将Connection放回DBConnectionPool，
+
+[04-10-25-12]
+1、仔细斟酌异常的处理细节。
+2、对于getDBConnection waitingTime的处理。(初步考虑通过ThreadLocal来处理)
+3、使得连接池如果一段时间不用，那么池中对象的数目恢复到initialCapacity。
+
+[04-11-11-22]
+4、使用DynamicProxy
+5、修复Broken Object。
+
+连接池利弊所在：
+(1)用户通过通用的用户帐号访问数据库，而不是每个用户使用各自的帐号。
+(2)数据库连接只用于单个请求的持续工作期间，而不是来自相同客户的多个请求的联合工作期间。
